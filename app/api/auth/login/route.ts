@@ -3,6 +3,15 @@ import bcrypt from "bcryptjs";
 import connectToDatabase from "@/lib/mongodb";
 import User from "@/models/User";
 import { signToken } from "@/lib/auth";
+import { sendMail } from "@/lib/mail/sendMail";
+
+const otpGenerator = (): string => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+const otpExpiration = (): Date => {
+  return new Date(Date.now() + 10 * 60 * 1000);
+};
 
 export async function POST(req: Request) {
   try {
@@ -18,7 +27,8 @@ export async function POST(req: Request) {
     await connectToDatabase();
 
     // Select password because it's not selected by default in the model
-    const user = await User.findOne({ email }).select("+password");
+    const emailString = String(email).toLowerCase();
+    const user = await User.findOne({ email: emailString }).select("+password");
 
     if (!user) {
       return NextResponse.json(
@@ -27,12 +37,47 @@ export async function POST(req: Request) {
       );
     }
 
-    const isMatch = await bcrypt.compare(password, user.password!);
+    const isMatch = await bcrypt.compare(String(password), user.password!);
 
     if (!isMatch) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
+      );
+    }
+
+    if (!user.isVerified) {
+      const cooldown = 8 * 60 * 1000; // 8 minutes remaining = 2 minutes elapsed
+      if (user.otpExpiry && new Date(user.otpExpiry).getTime() > Date.now() + cooldown) {
+        return NextResponse.json(
+          { message: "OTP previously sent. Please check your email.", verify: false },
+          { status: 200 }
+        );
+      }
+
+      const otp = otpGenerator();
+      const otpExpiry = otpExpiration();
+      
+      user.otp = otp;
+      user.otpExpiry = otpExpiry;
+      user.otpAttempts = 0;
+      await user.save();
+
+      try {
+        await sendMail({
+          subject: "OTP Verification - Nivaas",
+          to: user.email,
+          templateName: "NivaasOTP",
+          replacements: { name: user.name, otp },
+          consoleMessage: `OTP email sent to ${user.email}`,
+        });
+      } catch (emailError) {
+        console.log("Error sending OTP email:", emailError);
+      }
+
+      return NextResponse.json(
+        { message: "User not verified. OTP has been sent to your email.", verify: false },
+        { status: 200 }
       );
     }
 

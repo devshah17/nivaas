@@ -5,6 +5,9 @@ export interface IUser extends Document {
   email: string;
   phoneNumber?: string;
   password?: string;
+  otp?: string | null;
+  otpExpiry?: Date | null;
+  otpAttempts?: number;
   isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -39,9 +42,21 @@ const UserSchema: Schema = new Schema(
       minlength: [6, "Password cannot be less than 6 characters"],
       select: false, // Don't return password by default
     },
+    otp: {
+      type: String,
+      default: null,
+    },
+    otpExpiry: {
+      type: Date,
+      default: null,
+    },
+    otpAttempts: {
+      type: Number,
+      default: 0,
+    },
     isVerified: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   { timestamps: true }

@@ -2,7 +2,15 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import connectToDatabase from "@/lib/mongodb";
 import User from "@/models/User";
-import { signToken } from "@/lib/auth";
+import { sendMail } from "@/lib/mail/sendMail";
+
+const otpGenerator = (): string => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+const otpExpiration = (): Date => {
+  return new Date(Date.now() + 10 * 60 * 1000);
+};
 
 export async function POST(req: Request) {
   try {
@@ -17,7 +25,8 @@ export async function POST(req: Request) {
 
     await connectToDatabase();
 
-    const existingUser = await User.findOne({ email });
+    const emailString = String(email).toLowerCase();
+    const existingUser = await User.findOne({ email: emailString });
 
     if (existingUser) {
       return NextResponse.json(
@@ -27,32 +36,38 @@ export async function POST(req: Request) {
     }
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(String(password), salt);
+
+    const otp = otpGenerator();
+    const otpExpiry = otpExpiration();
 
     const user = await User.create({
-      name,
-      email,
+      name: String(name),
+      email: emailString,
       password: hashedPassword,
+      otp,
+      otpExpiry,
+      otpAttempts: 0,
+      isVerified: false,
     });
 
-    const token = await signToken({ userId: user._id.toString(), email: user.email });
+    try {
+      await sendMail({
+        subject: "OTP Verification - Nivaas",
+        to: user.email,
+        templateName: "NivaasOTP",
+        replacements: { name: user.name, otp },
+        consoleMessage: `OTP email sent to ${user.email}`,
+      });
+    } catch (emailError) {
+      console.log("Error sending OTP email:", emailError);
+      // We still return success but maybe log the error
+    }
 
-    const response = NextResponse.json(
-      { message: "Registration successful", user: { id: user._id, name: user.name, email: user.email } },
+    return NextResponse.json(
+      { message: "Registration successful. OTP sent to email.", user: { id: user._id, name: user.name, email: user.email } },
       { status: 201 }
     );
-
-    response.cookies.set({
-      name: "token",
-      value: token,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: "/",
-    });
-
-    return response;
   } catch (error: unknown) {
     console.error("Register Error:", error);
     return NextResponse.json(

@@ -26,6 +26,13 @@ export async function proxy(request: NextRequest) {
     payload = await verifyToken(token);
   }
 
+  // If token is present but payload is null (expired/invalid)
+  if (token && !payload) {
+    const response = NextResponse.redirect(new URL("/login", request.url));
+    response.cookies.delete("token");
+    return response;
+  }
+
   // If trying to access protected route without valid token, redirect to login
   if (isProtectedRoute && !payload) {
     return NextResponse.redirect(new URL("/login", request.url));
