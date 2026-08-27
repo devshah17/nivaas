@@ -36,12 +36,12 @@ export default function AdminDashboard({ org }: { org: { _id: string; [key: stri
   }, [org._id]);
 
   const stats = [
-    { name: "Total Members", value: dashboardStats?.totalMembers ?? "0", icon: Users, color: "text-blue-600", bg: "bg-blue-50", ring: "ring-blue-100", trend: "+12%" },
-    { name: "Today's Tiffins", value: dashboardStats?.todaysTiffins ?? "0", icon: Package, color: "text-orange-600", bg: "bg-orange-50", ring: "ring-orange-100", trend: "Active" },
-    { name: "Tiffin Rev.", value: `₹${dashboardStats?.monthlyTiffinRev ?? 0}`, icon: IndianRupee, color: "text-emerald-600", bg: "bg-emerald-50", ring: "ring-emerald-100", trend: "This Month" },
-    { name: "Rent Expected", value: `₹${dashboardStats?.expectedRent ?? 0}`, icon: HomeIcon, color: "text-indigo-600", bg: "bg-indigo-50", ring: "ring-indigo-100", trend: "This Month" },
-    { name: "Unpaid Bills", value: dashboardStats?.pendingPayments ?? "0", icon: AlertCircle, color: "text-rose-600", bg: "bg-rose-50", ring: "ring-rose-100", trend: "Requires Action" },
-    { name: "Occupancy", value: dashboardStats?.occupancy ? `${dashboardStats.occupancy.occupied}/${dashboardStats.occupancy.total}` : "0/0", icon: TrendingUp, color: "text-violet-600", bg: "bg-violet-50", ring: "ring-violet-100", trend: "Capacity" },
+    { name: "Total Members", value: dashboardStats?.totalMembers ?? "0", icon: Users, color: "text-primary", bg: "bg-primary/10", trend: "Members" },
+    { name: "Today's Tiffins", value: dashboardStats?.todaysTiffins ?? "0", icon: Package, color: "text-orange-600", bg: "bg-orange-50", trend: "Active today" },
+    { name: "Tiffin Revenue", value: `₹${dashboardStats?.monthlyTiffinRev ?? 0}`, icon: IndianRupee, color: "text-emerald-600", bg: "bg-emerald-50", trend: "This month" },
+    { name: "Rent Expected", value: `₹${dashboardStats?.expectedRent ?? 0}`, icon: HomeIcon, color: "text-indigo-600", bg: "bg-indigo-50", trend: "This month" },
+    { name: "Unpaid Bills", value: dashboardStats?.pendingPayments ?? "0", icon: AlertCircle, color: "text-rose-600", bg: "bg-rose-50", trend: "Needs attention" },
+    { name: "Occupancy", value: dashboardStats?.occupancy ? `${dashboardStats.occupancy.occupied}/${dashboardStats.occupancy.total}` : "0/0", icon: TrendingUp, color: "text-violet-600", bg: "bg-violet-50", trend: "Units filled" },
   ];
 
   return (
@@ -55,22 +55,20 @@ export default function AdminDashboard({ org }: { org: { _id: string; [key: stri
         </Badge>
       </div>
       
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {stats.map((item) => (
-          <Card key={item.name} className="overflow-hidden group hover:shadow-md transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+          <Card key={item.name} className="overflow-hidden group hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 border border-border">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0 pt-4 px-4">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
                 {item.name}
               </CardTitle>
-              <div className={`p-2 rounded-md ${item.bg} group-hover:scale-110 transition-transform`}>
-                <item.icon className={`h-4 w-4 ${item.color}`} />
+              <div className={`p-1.5 rounded-lg ${item.bg} group-hover:scale-110 transition-transform`}>
+                <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{item.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {item.trend}
-              </p>
+            <CardContent className="px-4 pb-4">
+              <div className="text-xl font-bold">{item.value}</div>
+              <p className="text-xs text-muted-foreground mt-0.5">{item.trend}</p>
             </CardContent>
           </Card>
         ))}

@@ -4,10 +4,12 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ReduxProvider } from "@/components/ReduxProvider";
 import { Toaster } from "react-hot-toast";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
+  variable: "--font-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
 const geistMono = Geist_Mono({
@@ -16,11 +18,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nivaas - Tiffin & Rental Management",
-  description: "Modern, minimal, easy-to-use tiffin and rental management.",
+  title: "Nivaas — Tiffin & Rental Management",
+  description: "Manage tiffin subscriptions and rentals effortlessly with Nivaas.",
+  icons: { icon: "/favicon.ico" },
 };
-
-import { TooltipProvider } from "@/components/ui/tooltip";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -28,12 +29,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
+      <body className="min-h-full flex flex-col bg-background text-foreground">
         <ReduxProvider>
           <AuthProvider>
             <TooltipProvider>
               {children}
-              <Toaster position="top-right" />
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  style: {
+                    borderRadius: "0.75rem",
+                    fontFamily: "var(--font-sans)",
+                    fontSize: "0.875rem",
+                  },
+                }}
+              />
             </TooltipProvider>
           </AuthProvider>
         </ReduxProvider>

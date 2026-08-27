@@ -44,34 +44,37 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
+        <p className="text-sm text-muted-foreground mt-1">Manage your organization's configuration.</p>
+      </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Organization Profile</CardTitle>
-          <CardDescription>View your organization details and invite code.</CardDescription>
+      <Card className="border-border rounded-2xl overflow-hidden shadow-sm">
+        <CardHeader className="bg-muted/10 border-b border-border pb-4">
+          <CardTitle className="text-xl font-bold text-foreground">Organization Profile</CardTitle>
+          <CardDescription className="font-medium text-muted-foreground mt-1">View your organization details and invite code.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 pt-6">
           <div className="grid grid-cols-1 gap-6 max-w-xl">
             <div className="space-y-2">
-              <Label>Organization Name</Label>
+              <Label className="font-semibold text-foreground">Organization Name</Label>
               <Input
                 type="text"
                 disabled
                 value={org.name}
-                className="bg-muted text-muted-foreground"
+                className="bg-muted text-muted-foreground rounded-xl h-11 border-border font-medium"
               />
             </div>
             
             <div className="space-y-2">
-              <Label>Invite Code</Label>
+              <Label className="font-semibold text-foreground">Invite Code</Label>
               <Input
                 type="text"
                 disabled
                 value={org.inviteCode}
-                className="font-mono bg-muted text-muted-foreground"
+                className="font-mono bg-muted text-primary rounded-xl h-11 border-border font-bold tracking-widest text-center"
               />
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-[13px] text-muted-foreground font-medium mt-1.5">
                 Share this code with users for them to join this organization.
               </p>
             </div>
@@ -79,28 +82,29 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Billing & Pricing</CardTitle>
-          <CardDescription>Configure pricing defaults for your organization.</CardDescription>
+      <Card className="border-border rounded-2xl overflow-hidden shadow-sm">
+        <CardHeader className="bg-muted/10 border-b border-border pb-4">
+          <CardTitle className="text-xl font-bold text-foreground">Billing & Pricing</CardTitle>
+          <CardDescription className="font-medium text-muted-foreground mt-1">Configure pricing defaults for your organization.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 pt-6">
           <div className="grid grid-cols-1 gap-6 max-w-xl">
             <div className="space-y-2">
-              <Label>Default Tiffin Price (₹)</Label>
+              <Label className="font-semibold text-foreground">Default Tiffin Price (₹)</Label>
               <Input
                 type="number"
                 min="0"
                 value={tiffinPrice}
                 onChange={(e) => setTiffinPrice(Number(e.target.value))}
+                className="rounded-xl h-11"
               />
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-[13px] text-muted-foreground font-medium mt-1.5">
                 This price will be used by default to calculate the total tiffin bill for members.
               </p>
             </div>
 
             <div className="pt-2">
-              <Button onClick={handleSave} disabled={saving}>
+              <Button onClick={handleSave} disabled={saving} className="gradient-primary border-0 rounded-xl h-11 px-8 text-sm font-semibold shadow-md text-white transition-all hover:opacity-90">
                 {saving ? (
                   <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</>
                 ) : (

@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import Link from "next/link";
-import { LogOut, User as UserIcon, Plus, UserPlus, Building, Loader2, Search } from "lucide-react";
+import { LogOut, User as UserIcon, Plus, UserPlus, Building, Loader2, Search, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
+import NivaasLogo from "@/components/NivaasLogo";
 
 export default function Dashboard() {
   const { user, loading: authLoading, logout } = useAuth();
@@ -14,7 +15,7 @@ export default function Dashboard() {
   const [isJoining, setIsJoining] = useState(false);
   const [orgName, setOrgName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<{ _id: string; name: string; [key: string]: unknown }[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -99,7 +100,7 @@ export default function Dashboard() {
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success("Join request sent successfully!");
+        toast.success("Join request sent!");
         setInviteCode("");
         fetchOrgs();
       } else {
@@ -111,7 +112,6 @@ export default function Dashboard() {
       setIsJoining(false);
     }
   };
-
 
   const handleSearchOrg = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +127,7 @@ export default function Dashboard() {
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success("Join request sent successfully!");
+        toast.success("Join request sent!");
         fetchOrgs();
       } else {
         toast.error(data.error || "Failed to join organization");
@@ -139,263 +139,250 @@ export default function Dashboard() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <NivaasLogo size={48} />
+          <Loader2 className="h-5 w-5 animate-spin text-primary mt-2" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white shadow-sm border-b border-gray-200">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="bg-card border-b border-border sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <div className="shrink-0 flex items-center">
-              <span className="font-bold text-xl text-blue-600">Nivaas</span>
+          <div className="flex justify-between h-14 items-center gap-4">
+            <div className="flex items-center gap-2.5">
+              <NivaasLogo size={30} />
+              <span className="font-bold text-lg text-foreground tracking-tight">Nivaas</span>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-1">
               <Link
                 href="/profile"
-                className="text-gray-600 hover:text-gray-900 flex items-center space-x-1"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
-                <UserIcon className="h-5 w-5" />
-                <span className="hidden sm:inline-block">Profile</span>
+                <UserIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Profile</span>
               </Link>
               <button
                 onClick={logout}
-                className="text-gray-600 hover:text-red-600 flex items-center space-x-1"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
               >
-                <LogOut className="h-5 w-5" />
-                <span className="hidden sm:inline-block">Logout</span>
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
-          Organizations
-        </h1>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                <Plus className="h-5 w-5 mr-2 text-blue-600" />
-                Create Organization
-              </h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Create a new organization to manage your tiffins and rentals as an admin.
-              </p>
-            </div>
-            <form onSubmit={handleCreateOrg} className="mt-auto">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  required
-                  placeholder="Organization Name"
-                  value={orgName}
-                  onChange={(e) => setOrgName(e.target.value)}
-                  className="w-full rounded-md border-0 py-2 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-                />
-                <button
-                  type="submit"
-                  disabled={isCreating}
-                  className="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-70 shrink-0"
-                >
-                  {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create"}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                <UserPlus className="h-5 w-5 mr-2 text-green-600" />
-                Join Organization
-              </h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Join an existing organization as a customer using an invite code.
-              </p>
-            </div>
-            <form onSubmit={handleJoinOrg} className="mt-auto">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  required
-                  placeholder="Invite Code (e.g. A1B2C3)"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value)}
-                  className="w-full rounded-md border-0 py-2 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 uppercase"
-                />
-                <button
-                  type="submit"
-                  disabled={isJoining}
-                  className="rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:opacity-70 shrink-0"
-                >
-                  {isJoining ? <Loader2 className="h-4 w-4 animate-spin" /> : "Join"}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
-                <Search className="h-5 w-5 mr-2 text-indigo-600" />
-                Search Organizations
-              </h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Find organizations to join by name.
-              </p>
-            </div>
-            <form onSubmit={handleSearchOrg} className="mt-auto">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Organization Name"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-md border-0 py-2 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                />
-                <button
-                  type="submit"
-                  disabled={isSearching}
-                  className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-70 shrink-0"
-                >
-                  {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
-                </button>
-              </div>
-            </form>
-          </div>
+        {/* Welcome banner */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-foreground">
+            Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}! 👋
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">Manage your organizations below.</p>
         </div>
 
-        <div className="mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Explore Organizations</h2>
-          {searchResults.length === 0 ? (
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
-              <Search className="mx-auto h-12 w-12 text-gray-300" />
-              <h3 className="mt-2 text-sm font-semibold text-gray-900">No organizations found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Try adjusting your search query.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {searchResults.map((org) => {
-                  const isAlreadyMember = orgs.some((myOrg) => myOrg._id === org._id);
-                  
-                  return (
-                    <div
-                      key={org._id}
-                      className="relative flex items-center justify-between rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="shrink-0">
-                          <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                            {org.name.charAt(0).toUpperCase()}
-                          </div>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-gray-900">{org.name}</p>
-                        </div>
-                      </div>
-                      <div>
-                        {isAlreadyMember ? (
-                          <span className="text-xs text-gray-500 font-medium">Joined / Pending</span>
-                        ) : (
-                          <button
-                            onClick={() => handleJoinById(org._id)}
-                            className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
-                          >
-                            Join
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+        {/* Action cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+          {/* Create */}
+          <div className="bg-card rounded-2xl border border-border p-5 flex flex-col gap-4">
+            <div className="flex items-center gap-2 text-primary">
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Plus className="h-4 w-4" />
               </div>
-
-              {totalPages > 1 && (
-                <div className="mt-6 flex items-center justify-center space-x-4">
-                  <button
-                    onClick={() => fetchSearchOrgs(currentPage - 1)}
-                    disabled={currentPage === 1 || isSearching}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    Previous
-                  </button>
-                  <span className="text-sm text-gray-600">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => fetchSearchOrgs(currentPage + 1)}
-                    disabled={currentPage === totalPages || isSearching}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Your Organizations</h2>
-        
-        {orgs.length === 0 ? (
-          <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center">
-            <Building className="mx-auto h-12 w-12 text-gray-300" />
-            <h3 className="mt-2 text-sm font-semibold text-gray-900">No organizations</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Get started by creating a new organization or joining an existing one.
+              <h2 className="font-semibold text-foreground">Create Organization</h2>
+            </div>
+            <p className="text-sm text-muted-foreground -mt-1">
+              Set up a new org and become its admin.
             </p>
+            <form onSubmit={handleCreateOrg} className="flex gap-2 mt-auto">
+              <input
+                type="text"
+                required
+                placeholder="Organization name"
+                value={orgName}
+                onChange={(e) => setOrgName(e.target.value)}
+                className="flex-1 min-w-0 rounded-xl border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+              />
+              <button
+                type="submit"
+                disabled={isCreating}
+                className="shrink-0 rounded-xl gradient-primary px-3 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60 transition"
+              >
+                {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create"}
+              </button>
+            </form>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {orgs.map((org) => {
-              const myMemberData = org.members.find((m) => m.user === user?._id);
-              const role = myMemberData?.role || "member";
-              const status = myMemberData?.status ?? true;
-              
-              return (
-                <Link
-                  key={org._id}
-                  href={`/org/${org._id}`}
-                  className="relative flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2 hover:border-gray-400 transition-colors"
-                >
-                  <div className="shrink-0">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                      {org.name.charAt(0).toUpperCase()}
+
+          {/* Join by code */}
+          <div className="bg-card rounded-2xl border border-border p-5 flex flex-col gap-4">
+            <div className="flex items-center gap-2 text-emerald-600">
+              <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <UserPlus className="h-4 w-4" />
+              </div>
+              <h2 className="font-semibold text-foreground">Join via Code</h2>
+            </div>
+            <p className="text-sm text-muted-foreground -mt-1">
+              Enter an invite code to request membership.
+            </p>
+            <form onSubmit={handleJoinOrg} className="flex gap-2 mt-auto">
+              <input
+                type="text"
+                required
+                placeholder="Invite code"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                className="flex-1 min-w-0 rounded-xl border border-input bg-background px-3 py-2 text-sm uppercase tracking-wider placeholder:text-muted-foreground placeholder:normal-case placeholder:tracking-normal focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition"
+              />
+              <button
+                type="submit"
+                disabled={isJoining}
+                className="shrink-0 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-500 disabled:opacity-60 transition"
+              >
+                {isJoining ? <Loader2 className="h-4 w-4 animate-spin" /> : "Join"}
+              </button>
+            </form>
+          </div>
+
+          {/* Search */}
+          <div className="bg-card rounded-2xl border border-border p-5 flex flex-col gap-4">
+            <div className="flex items-center gap-2 text-violet-600">
+              <div className="h-8 w-8 rounded-lg bg-violet-50 flex items-center justify-center">
+                <Search className="h-4 w-4" />
+              </div>
+              <h2 className="font-semibold text-foreground">Discover</h2>
+            </div>
+            <p className="text-sm text-muted-foreground -mt-1">
+              Search public organizations to join.
+            </p>
+            <form onSubmit={handleSearchOrg} className="flex gap-2 mt-auto">
+              <input
+                type="text"
+                placeholder="Search by name"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 min-w-0 rounded-xl border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 transition"
+              />
+              <button
+                type="submit"
+                disabled={isSearching}
+                className="shrink-0 rounded-xl bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-60 transition"
+              >
+                {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Search results */}
+        {searchResults.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-base font-semibold text-foreground mb-3">Discover Organizations</h2>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {searchResults.map((org) => {
+                const isAlreadyMember = orgs.some((myOrg) => myOrg._id === org._id);
+                return (
+                  <div
+                    key={org._id}
+                    className="flex items-center justify-between rounded-xl border border-border bg-card px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                        {org.name.charAt(0).toUpperCase()}
+                      </div>
+                      <p className="text-sm font-medium text-foreground">{org.name}</p>
                     </div>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="absolute inset-0" aria-hidden="true" />
-                    <p className="text-sm font-medium text-gray-900">{org.name}</p>
-                    <p className="truncate text-sm text-gray-500 capitalize">
-                      Role: {role}
-                    </p>
-                  </div>
-                  <div>
-                    {status === false ? (
-                      <span className="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">
-                        Pending
-                      </span>
+                    {isAlreadyMember ? (
+                      <span className="text-xs text-muted-foreground font-medium bg-muted px-2 py-0.5 rounded-full">Joined</span>
                     ) : (
-                      <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                        Active
-                      </span>
+                      <button
+                        onClick={() => handleJoinById(org._id)}
+                        className="text-xs font-semibold text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+                      >
+                        Join <ArrowRight className="h-3 w-3" />
+                      </button>
                     )}
                   </div>
-                </Link>
-              );
-            })}
+                );
+              })}
+            </div>
+            {totalPages > 1 && (
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <button
+                  onClick={() => fetchSearchOrgs(currentPage - 1)}
+                  disabled={currentPage === 1 || isSearching}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 transition"
+                >
+                  <ChevronLeft className="h-4 w-4" /> Prev
+                </button>
+                <span className="text-sm text-muted-foreground">{currentPage} / {totalPages}</span>
+                <button
+                  onClick={() => fetchSearchOrgs(currentPage + 1)}
+                  disabled={currentPage === totalPages || isSearching}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 transition"
+                >
+                  Next <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
         )}
+
+        {/* Your organizations */}
+        <div>
+          <h2 className="text-base font-semibold text-foreground mb-3">Your Organizations</h2>
+          {orgs.length === 0 ? (
+            <div className="bg-card rounded-2xl border border-border p-12 text-center">
+              <div className="h-12 w-12 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-3">
+                <Building className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-1">No organizations yet</h3>
+              <p className="text-sm text-muted-foreground">Create or join one to get started.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {orgs.map((org) => {
+                const myMemberData = org.members.find((m) => m.user === user?._id);
+                const role = myMemberData?.role || "member";
+                const status = myMemberData?.status ?? true;
+
+                return (
+                  <Link
+                    key={org._id}
+                    href={`/org/${org._id}`}
+                    className="group relative flex items-center gap-4 rounded-2xl border border-border bg-card px-5 py-4 hover:border-primary/40 hover:shadow-md transition-all card-hover"
+                  >
+                    <div className="h-11 w-11 rounded-xl gradient-primary flex items-center justify-center text-white font-bold text-lg shrink-0">
+                      {org.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-foreground truncate">{org.name}</p>
+                      <p className="text-xs text-muted-foreground capitalize mt-0.5">{role}</p>
+                    </div>
+                    <div className="shrink-0">
+                      {status === false ? (
+                        <span className="inline-flex items-center rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-medium text-amber-700">
+                          Pending
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

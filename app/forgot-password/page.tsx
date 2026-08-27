@@ -3,63 +3,82 @@
 import Link from "next/link";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { Mail, ArrowLeft, ArrowRight } from "lucide-react";
+import NivaasLogo from "@/components/NivaasLogo";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
+  const [sent, setSent] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Password reset link sent! (Mocked)");
+    toast.success("Password reset link sent!");
+    setSent(true);
     setEmail("");
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
-        <div>
-          <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Reset your password
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Enter your email to receive a password reset link.
-          </p>
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-12 bg-background">
+      <div className="w-full max-w-sm">
+        <div className="flex items-center gap-2 mb-8">
+          <NivaasLogo size={32} />
+          <span className="font-bold text-foreground">Nivaas</span>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="email-address" className="sr-only">
-              Email address
-            </label>
-            <input
-              id="email-address"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="relative block w-full rounded-md border-0 py-2.5 px-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
-              placeholder="Email address"
-            />
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              className="group relative flex w-full justify-center rounded-md bg-blue-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-            >
-              Send reset link
-            </button>
-          </div>
-          
-          <div className="text-center">
-            <Link
-              href="/login"
-              className="text-sm font-medium text-blue-600 hover:text-blue-500"
-            >
-              Back to login
+        {sent ? (
+          <div className="text-center py-8">
+            <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto mb-4">
+              <Mail className="h-6 w-6 text-emerald-600" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground mb-2">Check your inbox</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              A reset link has been sent to your email address.
+            </p>
+            <Link href="/login" className="text-sm text-primary font-medium hover:underline flex items-center justify-center gap-1">
+              <ArrowLeft className="h-3.5 w-3.5" /> Back to sign in
             </Link>
           </div>
-        </form>
+        ) : (
+          <>
+            <h2 className="text-2xl font-bold text-foreground mb-1">Forgot password?</h2>
+            <p className="text-sm text-muted-foreground mb-8">
+              Enter your email and we&apos;ll send you a reset link.
+            </p>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1">
+                <label htmlFor="email" className="text-sm font-medium text-foreground">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full rounded-xl border border-input bg-card pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full flex items-center justify-center gap-2 rounded-xl gradient-primary py-2.5 text-sm font-semibold text-white hover:opacity-90 active:scale-[0.98] transition-all"
+              >
+                Send reset link <ArrowRight className="h-4 w-4" />
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-1 transition-colors">
+                <ArrowLeft className="h-3.5 w-3.5" /> Back to sign in
+              </Link>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

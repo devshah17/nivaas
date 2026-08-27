@@ -158,17 +158,20 @@ export default function BillsPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">Bills & Invoices</h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Bills & Invoices</h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage and track billing periods.</p>
+        </div>
         
         <div className="flex items-center gap-3">
           <Input
             type="month"
             value={periodName}
             onChange={(e) => setPeriodName(e.target.value)}
-            className="w-auto"
+            className="w-auto rounded-xl bg-card border-input focus:border-primary"
           />
           {role === "admin" && (
-            <Button onClick={openGenerateModal}>
+            <Button onClick={openGenerateModal} className="gradient-primary text-white rounded-xl shadow-sm hover:opacity-90">
               <FileText className="-ml-1 mr-2 h-4 w-4" />
               Generate Bills
             </Button>
@@ -191,10 +194,10 @@ export default function BillsPage() {
           </CardDescription>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {bills.map(bill => (
-            <Card key={bill._id} className={`flex flex-col overflow-hidden ${bill.status === 'paid' ? 'border-green-200' : ''}`}>
-              <CardHeader className={`pb-4 border-b flex flex-row items-start justify-between space-y-0 ${bill.status === 'paid' ? 'bg-green-50/50' : 'bg-muted/10'}`}>
+            <Card key={bill._id} className={`flex flex-col overflow-hidden transition-all duration-200 hover:shadow-md border-border ${bill.status === 'paid' ? 'border-emerald-200' : 'hover:border-primary/40'}`}>
+              <CardHeader className={`pb-4 border-b flex flex-row items-start justify-between space-y-0 ${bill.status === 'paid' ? 'bg-emerald-50/30' : 'bg-muted/10'}`}>
                 <div>
                   <CardTitle className="text-lg">{role === "admin" ? bill.customer.name : "My Bill"}</CardTitle>
                   <CardDescription className="font-medium text-foreground mt-1">{bill.periodName}</CardDescription>
@@ -204,11 +207,11 @@ export default function BillsPage() {
                 </div>
                 <div>
                   {bill.status === 'paid' ? (
-                    <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100 flex items-center gap-1">
+                    <Badge variant="default" className="bg-emerald-100 text-emerald-800 hover:bg-emerald-100 flex items-center gap-1">
                       <CheckCircle className="h-3 w-3" /> Paid
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 flex items-center gap-1">
+                    <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-100 flex items-center gap-1">
                       <Clock className="h-3 w-3" /> Unpaid
                     </Badge>
                   )}
@@ -276,10 +279,10 @@ export default function BillsPage() {
               </CardContent>
 
               {role === "admin" && (
-                <CardFooter className="pt-2 pb-6 gap-2">
+                <CardFooter className="pt-2 pb-5 px-5 gap-2 mt-auto border-t bg-muted/5">
                   <Button
                     variant={bill.status === 'paid' ? "outline" : "default"}
-                    className={bill.status === 'paid' ? "flex-1" : "flex-1 bg-green-600 hover:bg-green-700 text-white"}
+                    className={`flex-1 rounded-xl transition-all ${bill.status === 'paid' ? 'hover:bg-destructive hover:text-destructive-foreground hover:border-destructive' : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'}`}
                     onClick={() => toggleStatus(bill._id, bill.status)}
                   >
                     {bill.status === 'paid' ? 'Mark Unpaid' : 'Mark Paid'}
@@ -288,10 +291,11 @@ export default function BillsPage() {
                     <Button
                       variant="outline"
                       size="icon"
+                      className="rounded-xl shrink-0"
                       onClick={() => openEditModal(bill)}
                       title="Add Other Charges"
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   )}
                 </CardFooter>
