@@ -70,7 +70,7 @@ export const api = {
   },
   tiffins: {
     get: (orgId: string, date: string) => apiClient.get(API_URLS.tiffins.get(orgId, date)).then((res) => res.data),
-    update: (orgId: string, data: unknown) => apiClient.put(API_URLS.tiffins.update(orgId), data).then((res) => res.data),
+    update: (orgId: string, data: unknown) => apiClient.patch(API_URLS.tiffins.update(orgId), data).then((res) => res.data),
   },
   bills: {
     get: (orgId: string, periodName: string) => apiClient.get(API_URLS.bills.get(orgId, periodName)).then((res) => res.data),
