@@ -8,7 +8,7 @@ const protectedRoutes = ["/dashboard", "/profile", "/org"];
 // Add routes that are only for unauthenticated users (like login/register)
 const unauthenticatedRoutes = ["/login", "/register", "/forgot-password"];
 
-export async function proxy(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isProtectedRoute = protectedRoutes.some(

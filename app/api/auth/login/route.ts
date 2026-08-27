@@ -47,14 +47,6 @@ export async function POST(req: Request) {
     }
 
     if (!user.isVerified) {
-      const cooldown = 8 * 60 * 1000; // 8 minutes remaining = 2 minutes elapsed
-      if (user.otpExpiry && new Date(user.otpExpiry).getTime() > Date.now() + cooldown) {
-        return NextResponse.json(
-          { message: "OTP previously sent. Please check your email.", verify: false },
-          { status: 200 }
-        );
-      }
-
       const otp = otpGenerator();
       const otpExpiry = otpExpiration();
       

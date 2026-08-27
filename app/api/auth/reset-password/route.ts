@@ -31,13 +31,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (user.otpAttempts && user.otpAttempts >= 3) {
-      return NextResponse.json(
-        { error: "Too many failed attempts. Please request a new OTP." },
-        { status: 429 }
-      );
-    }
-
     if (String(user.otp) !== String(otp)) {
       user.otpAttempts = (user.otpAttempts || 0) + 1;
       await user.save();

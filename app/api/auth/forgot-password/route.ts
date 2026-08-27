@@ -19,14 +19,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const cooldown = 8 * 60 * 1000;
-    if (user.otpExpiry && new Date(user.otpExpiry).getTime() > Date.now() + cooldown) {
-      return NextResponse.json(
-        { error: "An OTP was sent recently. Please wait a minute before requesting another." },
-        { status: 429 }
-      );
-    }
-
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
