@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { api } from '@/lib/api/client';
 
 interface TiffinEntry {
   _id?: string;
@@ -23,9 +24,7 @@ interface TiffinsState {
 export const fetchTiffinEntries = createAsyncThunk(
   'tiffins/fetchEntries',
   async ({ orgId, date }: { orgId: string, date: string }) => {
-    const res = await fetch(`/api/organizations/${orgId}/tiffins?date=${date}`);
-    if (!res.ok) throw new Error('Failed to fetch');
-    const data = await res.json();
+    const data = await api.tiffins.get(orgId, date);
     return data.entries;
   }
 );
@@ -43,22 +42,19 @@ export const updateTiffinEntryAsync = createAsyncThunk(
       [field]: value
     };
 
-    const res = await fetch(`/api/organizations/${orgId}/tiffins`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (!res.ok) return rejectWithValue('Failed to update');
-    const data = await res.json();
-    const newEntry = data.entry;
-    
-    const memberInfo = members.find((m) => m.user._id === customerId);
-    if (memberInfo) {
-      newEntry.customer = memberInfo.user;
+    try {
+      const data = await api.tiffins.update(orgId, payload);
+      const newEntry = data.entry;
+      
+      const memberInfo = members.find((m) => m.user._id === customerId);
+      if (memberInfo) {
+        newEntry.customer = memberInfo.user;
+      }
+      
+      return newEntry;
+    } catch {
+      return rejectWithValue('Failed to update');
     }
-    
-    return newEntry;
   }
 );
 
