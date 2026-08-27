@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, [pathname]);
 
-  const logout = async () => {
+  const logout = React.useCallback(async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       setUser(null);
@@ -54,10 +54,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         toast.error("Failed to logout");
     }
-  };
+  }, [router]);
+
+  const value = React.useMemo(() => ({ user, loading, setUser, logout }), [user, loading, logout]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, setUser, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

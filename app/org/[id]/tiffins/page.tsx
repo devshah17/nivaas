@@ -50,7 +50,7 @@ export default function TiffinsPage() {
     fetchEntries();
   }, [fetchEntries]);
 
-  const updateEntry = async (customerId: string, field: "lunchStatus" | "dinnerStatus", value: string) => {
+  const updateEntry = useCallback(async (customerId: string, field: "lunchStatus" | "dinnerStatus", value: string) => {
     setUpdating(`${customerId}-${field}`);
     
     const currentEntry = entries.find(e => (e.customer?._id || e.customer) === customerId) || {
@@ -82,13 +82,13 @@ export default function TiffinsPage() {
     } finally {
       setUpdating(null);
     }
-  };
+  }, [entries, members, dispatch, org._id, date, fetchEntries]);
 
-  const changeDate = (days: number) => {
+  const changeDate = useCallback((days: number) => {
     const d = new Date(date);
     d.setDate(d.getDate() + days);
     dispatch(setDate(d.toISOString().split("T")[0]));
-  };
+  }, [date, dispatch]);
 
   const getEntryForCustomer = (customerId: string) => {
     return (entries.find(e => (e.customer?._id || e.customer) === customerId) || {

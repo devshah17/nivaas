@@ -46,7 +46,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage your organization's configuration.</p>
+        <p className="text-sm text-muted-foreground mt-1">Manage your organization&apos;s configuration.</p>
       </div>
       
       <Card className="border-border rounded-2xl overflow-hidden shadow-sm">

@@ -63,7 +63,7 @@ export default function RentalsPage() {
     load();
   }, [fetchUnits, role, fetchMembers]);
 
-  const handleAddUnit = async (e: React.FormEvent) => {
+  const handleAddUnit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setProcessing(true);
     try {
@@ -77,9 +77,9 @@ export default function RentalsPage() {
     } finally {
       setProcessing(false);
     }
-  };
+  }, [dispatch, org._id, newRoom, newBed]);
 
-  const handleAssignTenant = async (e: React.FormEvent) => {
+  const handleAssignTenant = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!showAssignTenant) return;
     setProcessing(true);
@@ -102,9 +102,9 @@ export default function RentalsPage() {
     } finally {
       setProcessing(false);
     }
-  };
+  }, [showAssignTenant, members, assignData, dispatch, org._id]);
 
-  const handleRemoveTenant = async (unitId: string) => {
+  const handleRemoveTenant = useCallback(async (unitId: string) => {
     if (!confirm("Are you sure you want to remove this tenant? This will not delete past bills, but stops future billing.")) return;
     try {
       await dispatch(removeTenantAsync({ orgId: org._id, unitId })).unwrap();
@@ -112,9 +112,9 @@ export default function RentalsPage() {
     } catch {
       toast.error("Failed to remove tenant");
     }
-  };
+  }, [dispatch, org._id]);
 
-  const handleDeleteUnit = async (unitId: string) => {
+  const handleDeleteUnit = useCallback(async (unitId: string) => {
     if (!confirm("Are you sure you want to delete this unit?")) return;
     try {
       await dispatch(deleteRentalUnitAsync({ orgId: org._id, unitId })).unwrap();
@@ -122,7 +122,7 @@ export default function RentalsPage() {
     } catch {
       toast.error("Failed to delete unit");
     }
-  };
+  }, [dispatch, org._id]);
 
   if (loading) {
     return (

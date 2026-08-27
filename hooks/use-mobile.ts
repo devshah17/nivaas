@@ -11,8 +11,17 @@ export function useIsMobile() {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
     }
     mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
+    
+    // Defer the initial set to avoid cascading render warning in Next.js
+    let isMounted = true;
+    Promise.resolve().then(() => {
+      if (isMounted) setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    });
+    
+    return () => {
+      isMounted = false;
+      mql.removeEventListener("change", onChange)
+    }
   }, [])
 
   return !!isMobile

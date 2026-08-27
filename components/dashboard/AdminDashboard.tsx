@@ -1,48 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Users, Package, TrendingUp, IndianRupee, AlertCircle, Home as HomeIcon } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { useDashboardStats } from "@/lib/hooks/useDashboardStats";
+
+interface AdminDashboardStats {
+  totalMembers?: number | string;
+  todaysTiffins?: number | string;
+  monthlyTiffinRev?: number | string;
+  expectedRent?: number | string;
+  pendingPayments?: number | string;
+  occupancy?: { occupied: number; total: number };
+  recentUnpaidBills?: { _id: string; customer?: { name: string }; periodName: string; totalAmount: number }[];
+  revenueTrends?: { month: string; total: number }[];
+}
 
 export default function AdminDashboard({ org }: { org: { _id: string; [key: string]: unknown } }) {
-  const [dashboardStats, setDashboardStats] = useState<{
-    totalMembers?: number | string;
-    todaysTiffins?: number | string;
-    monthlyTiffinRev?: number | string;
-    expectedRent?: number | string;
-    pendingPayments?: number | string;
-    occupancy?: { occupied: number; total: number };
-    recentUnpaidBills?: { _id: string; customer?: { name: string }; periodName: string; totalAmount: number }[];
-    revenueTrends?: { month: string; total: number }[];
-  } | null>(null);
+  const { stats: dashboardStats } = useDashboardStats<AdminDashboardStats>(org._id);
 
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const res = await fetch(`/api/organizations/${org._id}/dashboard`);
-        if (res.ok) {
-          const data = await res.json();
-          setDashboardStats(data.stats);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    fetchStats();
-  }, [org._id]);
-
-  const stats = [
+  const stats = useMemo(() => [
     { name: "Total Members", value: dashboardStats?.totalMembers ?? "0", icon: Users, color: "text-primary", bg: "bg-primary/10", trend: "Members" },
     { name: "Today's Tiffins", value: dashboardStats?.todaysTiffins ?? "0", icon: Package, color: "text-orange-600", bg: "bg-orange-50", trend: "Active today" },
     { name: "Tiffin Revenue", value: `₹${dashboardStats?.monthlyTiffinRev ?? 0}`, icon: IndianRupee, color: "text-emerald-600", bg: "bg-emerald-50", trend: "This month" },
     { name: "Rent Expected", value: `₹${dashboardStats?.expectedRent ?? 0}`, icon: HomeIcon, color: "text-indigo-600", bg: "bg-indigo-50", trend: "This month" },
     { name: "Unpaid Bills", value: dashboardStats?.pendingPayments ?? "0", icon: AlertCircle, color: "text-rose-600", bg: "bg-rose-50", trend: "Needs attention" },
     { name: "Occupancy", value: dashboardStats?.occupancy ? `${dashboardStats.occupancy.occupied}/${dashboardStats.occupancy.total}` : "0/0", icon: TrendingUp, color: "text-violet-600", bg: "bg-violet-50", trend: "Units filled" },
-  ];
+  ], [dashboardStats]);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">

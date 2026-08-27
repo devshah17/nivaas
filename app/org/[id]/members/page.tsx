@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useOrg } from "@/components/OrgProvider";
 import { useRouter } from "next/navigation";
 import { Loader2, Check, X, Shield, User, Trash2, Settings2, UserPlus } from "lucide-react";
@@ -63,7 +63,7 @@ export default function MembersPage() {
     load();
   }, [role, org._id, router, fetchMembers]);
 
-  const handleAction = async (userId: string, action: string) => {
+  const handleAction = useCallback(async (userId: string, action: string) => {
     setActionLoading(`${userId}-${action}`);
     try {
       const res = await fetch(`/api/organizations/${org._id}/members/${userId}`, {
@@ -83,9 +83,9 @@ export default function MembersPage() {
     } finally {
       setActionLoading(null);
     }
-  };
+  }, [org._id, fetchMembers]);
 
-  const handleUpdateCycle = async (e: React.FormEvent) => {
+  const handleUpdateCycle = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingMember) return;
     
@@ -109,9 +109,9 @@ export default function MembersPage() {
     } finally {
       setActionLoading(null);
     }
-  };
+  }, [editingMember, org._id, tiffinCycle, rentCycle, fetchMembers]);
 
-  const handleAddMember = async (e: React.FormEvent) => {
+  const handleAddMember = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setIsAdding(true);
     try {
@@ -136,7 +136,10 @@ export default function MembersPage() {
     } finally {
       setIsAdding(false);
     }
-  };
+  }, [addName, addEmail, addPhoneNumber, org._id, fetchMembers]);
+
+  const pendingMembers = useMemo(() => members.filter(m => m.status === false), [members]);
+  const activeMembers = useMemo(() => members.filter(m => m.status === true), [members]);
 
   if (loading) {
     return (
@@ -145,9 +148,6 @@ export default function MembersPage() {
       </div>
     );
   }
-
-  const pendingMembers = members.filter(m => m.status === false);
-  const activeMembers = members.filter(m => m.status === true);
 
   return (
     <div className="space-y-6">

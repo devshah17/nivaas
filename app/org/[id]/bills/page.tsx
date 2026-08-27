@@ -78,7 +78,7 @@ export default function BillsPage() {
     load();
   }, [fetchBills, role, fetchMembers]);
 
-  const openGenerateModal = () => {
+  const openGenerateModal = useCallback(() => {
     const d = new Date();
     const currentMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     const firstDay = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
@@ -93,9 +93,9 @@ export default function BillsPage() {
       includeRent: true
     });
     setShowGenerateModal(true);
-  };
+  }, []);
 
-  const handleGenerateBills = async (e: React.FormEvent) => {
+  const handleGenerateBills = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!genParams.periodName || !genParams.startDate || !genParams.endDate) {
       toast.error("Please fill required fields");
@@ -117,18 +117,18 @@ export default function BillsPage() {
     } finally {
       setGenerating(false);
     }
-  };
+  }, [genParams, org._id, periodName, dispatch, fetchBills]);
 
-  const toggleStatus = async (billId: string, currentStatus: string) => {
+  const toggleStatus = useCallback(async (billId: string, currentStatus: string) => {
     try {
       await dispatch(toggleBillStatusAsync({ orgId: org._id, billId, currentStatus })).unwrap();
       toast.success(`Status updated`);
     } catch (e: unknown) {
       toast.error((e as Error).message || "Error updating status");
     }
-  };
+  }, [dispatch, org._id]);
 
-  const handleUpdateCharges = async (e: React.FormEvent) => {
+  const handleUpdateCharges = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingBill) return;
     
@@ -147,13 +147,13 @@ export default function BillsPage() {
     } finally {
       setUpdating(false);
     }
-  };
+  }, [editingBill, org._id, otherCharges, otherChargesNote, dispatch]);
 
-  const openEditModal = (bill: { _id: string; otherCharges: number; otherChargesNote?: string; customer: { name: string } }) => {
+  const openEditModal = useCallback((bill: { _id: string; otherCharges: number; otherChargesNote?: string; customer: { name: string } }) => {
     setEditingBill(bill);
     setOtherCharges(bill.otherCharges.toString());
     setOtherChargesNote(bill.otherChargesNote || "");
-  };
+  }, []);
 
   return (
     <div className="space-y-6">

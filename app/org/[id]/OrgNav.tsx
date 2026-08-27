@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useOrg } from "@/components/OrgProvider";
@@ -15,16 +16,16 @@ export default function OrgNav() {
 
   const baseUrl = `/org/${org._id}`;
 
-  const navItems = [
+  const navItems = useMemo(() => [
     { name: "Dashboard", href: baseUrl, icon: LayoutDashboard, show: true },
     { name: "Tiffins", href: `${baseUrl}/tiffins`, icon: Package, show: true },
     { name: "Rentals", href: `${baseUrl}/rentals`, icon: Home, show: true },
     { name: "Bills", href: `${baseUrl}/bills`, icon: Receipt, show: true },
     { name: "Members", href: `${baseUrl}/members`, icon: Users, show: role === "admin" },
     { name: "Settings", href: `${baseUrl}/settings`, icon: Settings, show: role === "admin" },
-  ];
+  ], [baseUrl, role]);
 
-  const visibleItems = navItems.filter(item => item.show);
+  const visibleItems = useMemo(() => navItems.filter(item => item.show), [navItems]);
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-30">

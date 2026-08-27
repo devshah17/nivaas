@@ -1,47 +1,42 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Package, DollarSign, Receipt, Clock, CreditCard, Home as HomeIcon } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useDashboardStats } from "@/lib/hooks/useDashboardStats";
+
+interface CustomerDashboardStats {
+  monthlyTiffins?: number;
+  estimatedTiffinBill?: number;
+  monthlyRent?: number;
+  otherCharges?: number;
+  amountPaid?: number;
+  amountPending?: number;
+  consumptionHistory?: { date: string; lunch: number; dinner: number; total: number }[];
+}
 
 export default function CustomerDashboard({ org }: { org: { _id: string; name: string; [key: string]: unknown } }) {
-  interface DashboardStats {
-    monthlyTiffins?: number;
-    estimatedTiffinBill?: number;
-    monthlyRent?: number;
-    otherCharges?: number;
-    amountPaid?: number;
-    amountPending?: number;
-    consumptionHistory?: { date: string; lunch: number; dinner: number; total: number }[];
-  }
-  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const { stats: dashboardStats } = useDashboardStats<CustomerDashboardStats>(org._id);
 
-  useEffect(() => {
-    async function fetchStats() {
-      try {
-        const res = await fetch(`/api/organizations/${org._id}/dashboard`);
-        if (res.ok) {
-          const data = await res.json();
-          setDashboardStats(data.stats);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    fetchStats();
-  }, [org._id]);
-
-  const stats = [
+  const stats = useMemo(() => [
     { name: "Month's Tiffins", value: dashboardStats?.monthlyTiffins ?? "0", icon: Package, color: "text-primary", bg: "bg-primary/10", trend: "Consumed" },
     { name: "Est. Tiffin Bill", value: `₹${dashboardStats?.estimatedTiffinBill ?? 0}`, icon: DollarSign, color: "text-orange-600", bg: "bg-orange-50", trend: "Projected" },
     { name: "Monthly Rent", value: `₹${dashboardStats?.monthlyRent ?? 0}`, icon: HomeIcon, color: "text-indigo-600", bg: "bg-indigo-50", trend: "Fixed" },
     { name: "Other Charges", value: `₹${dashboardStats?.otherCharges ?? 0}`, icon: Receipt, color: "text-purple-600", bg: "bg-purple-50", trend: "Extra" },
     { name: "Amount Paid", value: `₹${dashboardStats?.amountPaid ?? 0}`, icon: CreditCard, color: "text-emerald-600", bg: "bg-emerald-50", trend: "Settled" },
     { name: "Amount Pending", value: `₹${dashboardStats?.amountPending ?? 0}`, icon: Clock, color: "text-rose-600", bg: "bg-rose-50", trend: "Due" },
-  ];
+  ], [dashboardStats]);
+
+  const totalEstimatedBill = useMemo(() => {
+    return (
+      (Number(dashboardStats?.estimatedTiffinBill) || 0) + 
+      (Number(dashboardStats?.monthlyRent) || 0) + 
+      (Number(dashboardStats?.otherCharges) || 0)
+    ).toLocaleString();
+  }, [dashboardStats?.estimatedTiffinBill, dashboardStats?.monthlyRent, dashboardStats?.otherCharges]);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
@@ -83,11 +78,7 @@ export default function CustomerDashboard({ org }: { org: { _id: string; name: s
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-5xl font-bold mb-4 tracking-tight">
-              ₹{(
-                (Number(dashboardStats?.estimatedTiffinBill) || 0) + 
-                (Number(dashboardStats?.monthlyRent) || 0) + 
-                (Number(dashboardStats?.otherCharges) || 0)
-              ).toLocaleString()}
+              ₹{totalEstimatedBill}
             </div>
             <div className="flex items-center text-primary-foreground/80 text-sm">
               <span className="flex h-2 w-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span>

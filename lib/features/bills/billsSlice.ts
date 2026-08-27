@@ -1,4 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { api } from '@/lib/api/client';
+import axios from 'axios';
 
 interface Bill {
   _id: string;
@@ -26,9 +28,7 @@ interface BillsState {
 export const fetchBillsAsync = createAsyncThunk(
   'bills/fetchBills',
   async ({ orgId, periodName }: { orgId: string, periodName: string }) => {
-    const res = await fetch(`/api/organizations/${orgId}/bills?periodName=${periodName}`);
-    if (!res.ok) throw new Error('Failed to fetch bills');
-    const data = await res.json();
+    const data = await api.bills.get(orgId, periodName);
     return data.bills;
   }
 );
@@ -36,14 +36,15 @@ export const fetchBillsAsync = createAsyncThunk(
 export const generateBillsAsync = createAsyncThunk(
   'bills/generate',
   async ({ orgId, params }: { orgId: string, params: Record<string, unknown> }) => {
-    const res = await fetch(`/api/organizations/${orgId}/bills/generate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(params),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'Failed to generate bills');
-    return data;
+    try {
+      const data = await api.bills.generate(orgId, params);
+      return data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.error || 'Failed to generate bills');
+      }
+      throw new Error('Failed to generate bills');
+    }
   }
 );
 
@@ -51,12 +52,7 @@ export const toggleBillStatusAsync = createAsyncThunk(
   'bills/toggleStatus',
   async ({ orgId, billId, currentStatus }: { orgId: string, billId: string, currentStatus: string }) => {
     const newStatus = currentStatus === "paid" ? "unpaid" : "paid";
-    const res = await fetch(`/api/organizations/${orgId}/bills/${billId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    if (!res.ok) throw new Error('Failed to update status');
+    await api.bills.updateStatus(orgId, billId, { status: newStatus });
     return { billId, status: newStatus };
   }
 );
@@ -64,15 +60,10 @@ export const toggleBillStatusAsync = createAsyncThunk(
 export const updateChargesAsync = createAsyncThunk(
   'bills/updateCharges',
   async ({ orgId, billId, otherCharges, otherChargesNote }: { orgId: string; billId: string; otherCharges: number; otherChargesNote?: string }) => {
-    const res = await fetch(`/api/organizations/${orgId}/bills/${billId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        otherCharges: Number(otherCharges),
-        otherChargesNote
-      }),
+    await api.bills.updateCharges(orgId, billId, {
+      otherCharges: Number(otherCharges),
+      otherChargesNote
     });
-    if (!res.ok) throw new Error('Failed to update charges');
     return { billId, otherCharges: Number(otherCharges), otherChargesNote };
   }
 );

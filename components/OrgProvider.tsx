@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import React, { createContext, useContext } from "react";
 
 type OrgContextType = {
   org: { _id: string; name: string; logoUrl?: string; tiffinPrice?: number; inviteCode?: string; [key: string]: unknown };
@@ -21,8 +21,10 @@ export function OrgProvider({
   role: string, 
   status: boolean 
 }) {
+  const value = React.useMemo(() => ({ org, role, status }), [org, role, status]);
+
   return (
-    <OrgContext.Provider value={{ org, role, status }}>
+    <OrgContext.Provider value={value}>
       {children}
     </OrgContext.Provider>
   );
