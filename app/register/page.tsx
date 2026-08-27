@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { api } from "@/lib/api/client";
+import axios from "axios";
 import { useAuth } from "@/components/AuthProvider";
 import { Loader2, User, Mail, Lock, ArrowRight } from "lucide-react";
 import NivaasLogo from "@/components/NivaasLogo";
@@ -20,21 +22,16 @@ export default function Register() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Account created!");
-        setUser(data.user);
-        router.push("/dashboard");
+      const { user } = await api.auth.register({ name, email, password });
+      toast.success("Account created successfully!");
+      setUser(user);
+      router.push("/dashboard");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.error || "Failed to create account");
       } else {
-        toast.error(data.error || "Failed to create account");
+        toast.error("An error occurred");
       }
-    } catch {
-      toast.error("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

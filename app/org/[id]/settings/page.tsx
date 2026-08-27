@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useOrg } from "@/components/OrgProvider";
+import { api } from "@/lib/api/client";
+import axios from "axios";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 
@@ -22,21 +24,17 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`/api/organizations/${org._id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tiffinPrice: Number(tiffinPrice) })
+      await api.org.updateSettings(org._id, {
+        tiffinPrice: Number(tiffinPrice)
       });
-      if (res.ok) {
-        toast.success("Settings updated successfully!");
-        // Force refresh to update context (could be optimized)
-        window.location.reload();
+      toast.success("Settings updated successfully!");
+      window.location.reload();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.error || "Failed to update settings");
       } else {
-        const data = await res.json();
-        toast.error(data.error || "Failed to update settings");
+        toast.error("Error saving settings");
       }
-    } catch {
-      toast.error("Error saving settings");
     } finally {
       setSaving(false);
     }

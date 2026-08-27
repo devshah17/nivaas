@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { api } from "@/lib/api/client";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -58,11 +59,8 @@ export default function BillsPage() {
 
   const fetchMembers = useCallback(async () => {
     try {
-      const res = await fetch(`/api/organizations/${org._id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setMembers(data.organization.members.filter((m: { status: boolean; user: { _id: string; name: string } }) => m.status === true));
-      }
+      const data = await api.org.get(org._id);
+      setMembers(data.organization.members.filter((m: { status: boolean; role: string }) => m.status === true && m.role !== "admin"));
     } catch (e) {
       console.error(e);
     }

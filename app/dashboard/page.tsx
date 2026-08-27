@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { api } from "@/lib/api/client";
+import axios from "axios";
 import Link from "next/link";
 import { LogOut, User as UserIcon, Plus, UserPlus, Building, Loader2, Search, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
@@ -24,11 +26,8 @@ export default function Dashboard() {
 
   const fetchOrgs = useCallback(async () => {
     try {
-      const res = await fetch("/api/organizations");
-      if (res.ok) {
-        const data = await res.json();
-        setOrgs(data.organizations || []);
-      }
+      const data = await api.org.list();
+      setOrgs(data.organizations || []);
     } catch (error) {
       console.error(error);
     } finally {
@@ -39,15 +38,10 @@ export default function Dashboard() {
   const fetchSearchOrgs = useCallback(async (pageToFetch = currentPage, query = searchQuery) => {
     setIsSearching(true);
     try {
-      const res = await fetch(`/api/organizations/search?q=${encodeURIComponent(query)}&page=${pageToFetch}&limit=10`);
-      if (res.ok) {
-        const data = await res.json();
-        setSearchResults(data.organizations || []);
-        setTotalPages(data.totalPages || 1);
-        setCurrentPage(data.currentPage || 1);
-      } else {
-        toast.error("Failed to fetch organizations");
-      }
+      const data = await api.org.search(query, pageToFetch);
+      setSearchResults(data.organizations || []);
+      setTotalPages(data.totalPages || 1);
+      setCurrentPage(data.currentPage || 1);
     } catch (error) {
       console.error(error);
       toast.error("An error occurred");
@@ -69,21 +63,16 @@ export default function Dashboard() {
     e.preventDefault();
     setIsCreating(true);
     try {
-      const res = await fetch("/api/organizations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: orgName }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Organization created!");
-        setOrgName("");
-        fetchOrgs();
+      await api.org.create({ name: orgName });
+      toast.success("Organization created!");
+      setOrgName("");
+      fetchOrgs();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.error || "Failed to create organization");
       } else {
-        toast.error(data.error || "Failed to create organization");
+        toast.error("An error occurred");
       }
-    } catch {
-      toast.error("An error occurred");
     } finally {
       setIsCreating(false);
     }
@@ -93,21 +82,16 @@ export default function Dashboard() {
     e.preventDefault();
     setIsJoining(true);
     try {
-      const res = await fetch("/api/organizations/join", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inviteCode }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Join request sent!");
-        setInviteCode("");
-        fetchOrgs();
+      await api.org.join({ inviteCode });
+      toast.success("Join request sent!");
+      setInviteCode("");
+      fetchOrgs();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.error || "Failed to join organization");
       } else {
-        toast.error(data.error || "Failed to join organization");
+        toast.error("An error occurred");
       }
-    } catch {
-      toast.error("An error occurred");
     } finally {
       setIsJoining(false);
     }
@@ -120,20 +104,15 @@ export default function Dashboard() {
 
   const handleJoinById = async (orgId: string) => {
     try {
-      const res = await fetch("/api/organizations/join", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orgId }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Join request sent!");
-        fetchOrgs();
+      await api.org.join({ orgId });
+      toast.success("Join request sent!");
+      fetchOrgs();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.error || "Failed to join organization");
       } else {
-        toast.error(data.error || "Failed to join organization");
+        toast.error("An error occurred");
       }
-    } catch {
-      toast.error("An error occurred");
     }
   };
 

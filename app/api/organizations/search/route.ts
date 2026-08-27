@@ -34,6 +34,7 @@ export async function GET(req: Request) {
     const organizations = await Organization.find(searchCriteria)
       .skip(skip)
       .limit(limit)
+      .lean()
       .select("_id name");
 
     const totalPages = Math.ceil(total / limit);

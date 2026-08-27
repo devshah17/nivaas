@@ -20,7 +20,7 @@ export async function GET() {
     }
 
     await connectToDatabase();
-    const user = await User.findById(payload.userId).select("-password");
+    const user = await User.findById(payload.userId).select("-password").lean();
 
     if (!user) {
       return NextResponse.json({ user: null }, { status: 404 });

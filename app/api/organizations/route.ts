@@ -21,7 +21,7 @@ export async function GET() {
 
     const organizations = await Organization.find({
       "members.user": user.userId as string,
-    } as Record<string, unknown>).populate("creator", "name email");
+    }).lean().populate("creator", "name email");
 
     // Mask other members or specific fields if needed
     // But for listing, this is fine

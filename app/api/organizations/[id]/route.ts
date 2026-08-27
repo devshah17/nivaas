@@ -16,7 +16,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     await connectToDatabase();
 
-    const organization = await Organization.findById(id).populate("members.user", "name email");
+    const organization = await Organization.findById(id).populate("members.user", "name email").lean();
 
     if (!organization) {
       return NextResponse.json({ error: "Organization not found" }, { status: 404 });

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { api } from "@/lib/api/client";
 import toast from "react-hot-toast";
 
 interface User {
@@ -28,13 +29,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        } else {
-          setUser(null);
-        }
+        const data = await api.auth.me();
+        setUser(data.user);
       } catch {
         setUser(null);
       } finally {
@@ -47,12 +43,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = React.useCallback(async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await api.auth.logout();
       setUser(null);
       router.push("/login");
       toast.success("Logged out successfully");
-      } catch {
-        toast.error("Failed to logout");
+    } catch {
+      toast.error("Failed to logout");
     }
   }, [router]);
 

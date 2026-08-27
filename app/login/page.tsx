@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import axios from "axios";
+import { api } from "@/lib/api/client";
 import { useAuth } from "@/components/AuthProvider";
 import { Loader2, Mail, Lock, ArrowRight } from "lucide-react";
 import NivaasLogo from "@/components/NivaasLogo";
@@ -19,21 +21,16 @@ export default function Login() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Welcome back!");
-        setUser(data.user);
-        router.push("/dashboard");
+      const { user } = await api.auth.login({ email, password });
+      toast.success("Login successful!");
+      setUser(user);
+      router.push("/dashboard");
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.error || "Login failed");
       } else {
-        toast.error(data.error || "Failed to sign in");
+        toast.error("An error occurred");
       }
-    } catch {
-      toast.error("An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { api } from "@/lib/api/client";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -42,12 +43,9 @@ export default function RentalsPage() {
 
   const fetchMembers = useCallback(async () => {
     try {
-      const res = await fetch(`/api/organizations/${org._id}`);
-      if (res.ok) {
-        const data = await res.json();
-        // Only allow assigning active members who are not admins
-        setMembers(data.organization.members.filter((m: { status: boolean; role: string }) => m.status === true && m.role !== "admin"));
-      }
+      const data = await api.org.get(org._id);
+      // Only allow assigning active members who are not admins
+      setMembers(data.organization.members.filter((m: { status: boolean; role: string }) => m.status === true && m.role !== "admin"));
     } catch (e) {
       console.error(e);
     }

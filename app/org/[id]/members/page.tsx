@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useOrg } from "@/components/OrgProvider";
 import { useRouter } from "next/navigation";
+import { api } from "@/lib/api/client";
+import axios from "axios";
 import { Loader2, Check, X, Shield, User, Trash2, Settings2, UserPlus } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -39,11 +41,8 @@ export default function MembersPage() {
 
   const fetchMembers = useCallback(async () => {
     try {
-      const res = await fetch(`/api/organizations/${org._id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setMembers(data.organization.members || []);
-      }
+      const data = await api.org.get(org._id);
+      setMembers(data.organization.members || []);
     } catch (error) {
       console.error(error);
     } finally {
@@ -66,20 +65,15 @@ export default function MembersPage() {
   const handleAction = useCallback(async (userId: string, action: string) => {
     setActionLoading(`${userId}-${action}`);
     try {
-      const res = await fetch(`/api/organizations/${org._id}/members/${userId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success(data.message || `Member ${action}d successfully`);
-        fetchMembers();
+      const data = await api.members.update(org._id, userId, { action });
+      toast.success(data.message || `Member ${action}d successfully`);
+      fetchMembers();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.error || `Failed to ${action} member`);
       } else {
-        toast.error(data.error || `Failed to ${action} member`);
+        toast.error("An error occurred");
       }
-    } catch {
-      toast.error("An error occurred");
     } finally {
       setActionLoading(null);
     }
@@ -91,21 +85,16 @@ export default function MembersPage() {
     
     setActionLoading(`${editingMember.user._id}-cycle`);
     try {
-      const res = await fetch(`/api/organizations/${org._id}/members/${editingMember.user._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "update-cycle", tiffinCycleStart: Number(tiffinCycle), rentCycleStart: Number(rentCycle) }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Billing cycle updated");
-        setEditingMember(null);
-        fetchMembers();
+      await api.members.update(org._id, editingMember.user._id, { action: "update-cycle", tiffinCycleStart: Number(tiffinCycle), rentCycleStart: Number(rentCycle) });
+      toast.success("Billing cycle updated");
+      setEditingMember(null);
+      fetchMembers();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.error || "Failed to update cycle");
       } else {
-        toast.error(data.error || "Failed to update cycle");
+        toast.error("An error occurred");
       }
-    } catch {
-      toast.error("An error occurred");
     } finally {
       setActionLoading(null);
     }
@@ -115,24 +104,19 @@ export default function MembersPage() {
     e.preventDefault();
     setIsAdding(true);
     try {
-      const res = await fetch(`/api/organizations/${org._id}/members/add`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: addName, email: addEmail, phoneNumber: addPhoneNumber }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Member added successfully");
-        setShowAddModal(false);
-        setAddName("");
-        setAddEmail("");
-        setAddPhoneNumber("");
-        fetchMembers();
+      await api.members.add(org._id, { name: addName, email: addEmail, phoneNumber: addPhoneNumber });
+      toast.success("Member added successfully");
+      setShowAddModal(false);
+      setAddName("");
+      setAddEmail("");
+      setAddPhoneNumber("");
+      fetchMembers();
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error) && error.response) {
+        toast.error(error.response.data.error || "Failed to add member");
       } else {
-        toast.error(data.error || "Failed to add member");
+        toast.error("An error occurred");
       }
-    } catch {
-      toast.error("An error occurred");
     } finally {
       setIsAdding(false);
     }
