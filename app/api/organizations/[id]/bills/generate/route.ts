@@ -52,7 +52,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     
     let generatedCount = 0;
 
-    for (const member of targetMembers) {
+    const generatePromises = targetMembers.map(async (member) => {
       const currentCustId = member.user.toString();
 
       // We'll look for an existing unpaid bill for this period and customer.
@@ -65,7 +65,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       });
 
       let tiffinCount = 0;
-      let tiffinEntriesToUpdate: Awaited<ReturnType<typeof TiffinEntry.find>> = [];
+      let tiffinEntriesToUpdate: { _id: unknown; lunchStatus: string; dinnerStatus: string; lunchExtra: number; dinnerExtra: number; lunchBill?: unknown; dinnerBill?: unknown }[] = [];
       if (includeTiffin) {
         const query: Record<string, unknown> = {
           organization: id,
@@ -84,8 +84,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           ];
         }
 
-        const entries = await TiffinEntry.find(query);
-        tiffinEntriesToUpdate = entries;
+        const entries = await TiffinEntry.find(query).lean();
+        tiffinEntriesToUpdate = entries as unknown as typeof tiffinEntriesToUpdate;
         
         entries.forEach(entry => {
           if (entry.lunchStatus === "consumed" && (!entry.lunchBill || (unpaidBill && entry.lunchBill.toString() === unpaidBill._id.toString()))) {
@@ -102,7 +102,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       let rentAmount = 0;
       const rentalUnitsToUpdate: { _id: unknown; rentAmount?: number; billedPeriods?: string[]; moveInDate?: string | Date }[] = [];
       if (includeRent) {
-        const rentalUnits = await RentalUnit.find({ organization: id, tenant: currentCustId });
+        const rentalUnits = await RentalUnit.find({ organization: id, tenant: currentCustId }).lean();
         
         for (const unit of rentalUnits) {
           if (unit.moveInDate) {
@@ -138,7 +138,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         if (unpaidBill) {
           await Bill.findByIdAndDelete(unpaidBill._id);
         }
-        continue;
+        return; // continue equivalent for map callback
       }
 
       let billDoc;
@@ -167,32 +167,33 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       
       // Update Tiffins to link to this bill
       if (tiffinEntriesToUpdate.length > 0) {
-        for (const entry of tiffinEntriesToUpdate) {
-          let updated = false;
-          if (entry.lunchStatus === "consumed" && (!entry.lunchBill || (unpaidBill && entry.lunchBill.toString() === unpaidBill._id.toString()))) {
-             entry.lunchBill = billDoc._id;
-             updated = true;
-          }
-          if (entry.dinnerStatus === "consumed" && (!entry.dinnerBill || (unpaidBill && entry.dinnerBill.toString() === unpaidBill._id.toString()))) {
-             entry.dinnerBill = billDoc._id;
-             updated = true;
-          }
-          if (updated) await entry.save();
-        }
+        const entryIds = tiffinEntriesToUpdate.map(e => String(e._id));
+        
+        await Promise.all([
+          TiffinEntry.updateMany(
+            { _id: { $in: entryIds }, lunchStatus: "consumed", $or: [{ lunchBill: null }, { lunchBill: unpaidBill?._id }] },
+            { $set: { lunchBill: billDoc._id } }
+          ),
+          TiffinEntry.updateMany(
+            { _id: { $in: entryIds }, dinnerStatus: "consumed", $or: [{ dinnerBill: null }, { dinnerBill: unpaidBill?._id }] },
+            { $set: { dinnerBill: billDoc._id } }
+          )
+        ]);
       }
 
       // Update RentalUnit to record this period as billed for rent
       if (rentAmount > 0 && rentalUnitsToUpdate.length > 0) {
-        for (const unit of rentalUnitsToUpdate) {
-          await RentalUnit.updateOne(
-            { _id: unit._id as unknown as string },
-            { $addToSet: { billedPeriods: periodName } }
-          );
-        }
+        const unitIds = rentalUnitsToUpdate.map(u => String(u._id));
+        await RentalUnit.updateMany(
+          { _id: { $in: unitIds } },
+          { $addToSet: { billedPeriods: periodName } }
+        );
       }
       
       generatedCount++;
-    }
+    });
+
+    await Promise.all(generatePromises);
 
     return NextResponse.json({ message: `Successfully generated ${generatedCount} bills.` }, { status: 200 });
 
